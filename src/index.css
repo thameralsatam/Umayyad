@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+@utility text-hero {
+  font-size: 72px;
+  font-weight: 900;
+  line-height: 90px;
+}
+
+@utility text-display-medium {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 70px;
+}
+
+@theme {
+  --font-sans: 'Qomra', sans-serif;
+  --font-heading: 'Qomra', sans-serif;
+  --font-arabic-display: 'Qomra', sans-serif;
+  --font-amiri: 'Qomra', sans-serif;
+  --font-mono: 'Qomra', sans-serif;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'itfQomraArabic_Medium';
+  src: url('/fonts/itfQomraArabic-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'itfQomraArabic_Medium';
+  src: url('/fonts/itfQomraArabic-Medium.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Qomra';
+  src: url('/fonts/itfQomraArabic-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --color-primary: #002623;
+    --color-primary-light: #003d30;
+    --color-primary-50: rgba(0, 38, 35, 0.5);
+    --color-primary-12: rgba(0, 38, 35, 0.12);
+    --color-secondary: #b9a779;
+    --color-secondary-50: rgba(185, 167, 121, 0.5);
+    --color-secondary-12: rgba(185, 167, 121, 0.12);
+    --color-primary-green: #002623;
+    --color-accent-gold: #b9a779;
+    --color-stone-light: #fafaf9;
+    --color-stone-surface: #ffffff;
+    --color-stone-border: rgba(0, 38, 35, 0.12);
+    --color-text-charcoal: #000000;
+    --color-text-muted: #637381;
+  }
+
+  html {
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+    font-family: 'Qomra', sans-serif;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+    font-variant-ligatures: normal contextual discretionary-ligatures;
+    font-optical-sizing: auto;
+  }
+
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    overflow-x: clip;
+    background-color: #fafaf9;
+    position: relative;
+    color: #002623;
+    font-family: 'Qomra', sans-serif;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+    font-variant-ligatures: normal contextual discretionary-ligatures;
+  }
+
+  /* Completely hide scrollbars for Chrome, Safari, Opera and all browsers without universal selector */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none !important;
+    width: 0px !important;
+    height: 0px !important;
+    background: transparent !important;
+  }
+
+  /* Font styling based on direction with Syrian Visual Identity typography */
+  [dir="rtl"] {
+    font-family: 'Qomra', 'itfQomraArabic_Medium', sans-serif;
+    letter-spacing: normal;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+    font-variant-ligatures: normal contextual discretionary-ligatures;
+  }
+
+  [dir="ltr"] {
+    font-family: 'Qomra', 'itfQomraArabic_Medium', sans-serif;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+  }
+
+  .font-arabic-display,
+  .font-heading {
+    font-family: 'Qomra', sans-serif;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+    font-variant-ligatures: normal contextual discretionary-ligatures;
+  }
+
+  .font-amiri,
+  .font-latin-display {
+    font-family: 'Qomra', sans-serif;
+    font-feature-settings: "liga" 1, "dlig" 1, "calt" 1, "kern" 1, "ss01" 1;
+    font-variant-ligatures: normal contextual discretionary-ligatures;
+  }
+
+  /* Ministry of Awqaf Standard Fluid Typography & Text Scales */
+  .text-h4 {
+    font-size: 1.25rem; /* 20px */
+    line-height: 1.75rem;
+    font-weight: 700;
+  }
+
+  .text-body-medium {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.625rem;
+    font-weight: 400;
+  }
+
+  .text-body-small {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.25rem;
+    font-weight: 400;
+  }
+
+  .text-caption {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1rem;
+  }
+
+  /* Ministry of Awqaf Standard Fluid Typography & Text Scales */
+  .text-fluid-hero {
+    font-size: clamp(2rem, calc(1.5rem + 2.2vw), 3.5rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  .text-fluid-h2 {
+    font-size: clamp(2.25rem, calc(1.75rem + 2vw), 3.5rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 700;
+  }
+
+  .text-fluid-h3 {
+    font-size: clamp(1.15rem, calc(1.05rem + 0.4vw), 1.375rem);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+
+  .text-fluid-subtitle {
+    font-size: clamp(0.95rem, calc(0.9rem + 0.25vw), 1.125rem);
+    line-height: 1.65;
+    font-weight: 400;
+    color: #637381;
+  }
+}
+
+/* Official Ministry token classes */
+.shadow-nav {
+  box-shadow: 0px 1px 4px 0px rgba(0, 38, 35, 0.03);
+}
+
+.border-primary-12 {
+  border-color: rgba(0, 38, 35, 0.12);
+}
+
+.bg-primary {
+  background-color: #002623;
+}
+
+.text-primary {
+  color: #002623;
+}
+
+.bg-secondary {
+  background-color: #b9a779;
+}
+
+.text-secondary {
+  color: #b9a779;
+}
+
+/* Reduced motion accessibility support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+

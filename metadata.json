@@ -1,0 +1,6 @@
+{
+  "name": "الجامع الأموي في دمشق | The Umayyad Mosque of Damascus",
+  "description": "بوابة التوثيق المعماري والتاريخي للجامع الأموي الكبير بدمشق، مستندة إلى السجلات الأثرية المعتمدة والمراجع الأكاديمية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
