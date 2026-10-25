@@ -1,137 +1,131 @@
-import React, { useState } from 'react';
+import React, { useMemo, useRef } from 'react';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Language, LightboxImageItem } from '../types';
-import { PHOTO_GALLERY_ITEMS } from '../data/content';
-import { Maximize2 } from 'lucide-react';
-import { SafeImage } from './SafeImage';
+import { SECTIONS } from '../data/content';
+import { GALLERY_KEYS, IMAGES, ImageKey, imgSrc } from '../data/images';
 import { useLightbox } from '../context/LightboxContext';
-import { Reveal } from './Motion';
+import { Picture } from './Picture';
+import { SectionHead } from './SectionHead';
 
 interface PhotoGallerySectionProps {
   lang: Language;
 }
 
-type GalleryCategory = 'all' | 'courtyard' | 'interior' | 'mosaics' | 'minarets' | 'damascus';
+interface ItemProps {
+  imageKey: ImageKey;
+  index: number;
+  lang: Language;
+  onOpen: (i: number) => void;
+}
+
+const GalleryItem: React.FC<ItemProps> = ({ imageKey, index, lang, onOpen }) => {
+  const ref = useRef<HTMLElement>(null);
+  const reduce = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.97, 1, 0.99]);
+
+  return (
+    <motion.figure ref={ref} style={reduce ? undefined : { scale }} className="w-60 shrink-0 snap-start sm:w-72">
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        aria-label={IMAGES[imageKey][lang]}
+        className="group block aspect-[4/5] w-full cursor-zoom-in overflow-hidden rounded-[2rem] bg-[#ebebeb] shadow-[0_18px_40px_-24px_rgba(0,38,35,0.18)]"
+      >
+        <motion.div
+          className="h-full w-full"
+          initial={reduce ? false : { opacity: 0, scale: 1.03 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 1.3, delay: (index % 3) * 0.05, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <Picture
+            src={imgSrc(imageKey)}
+            alt={IMAGES[imageKey][lang]}
+            lang={lang}
+            className="h-full w-full transition-transform duration-700 group-hover:scale-[1.05]"
+          />
+        </motion.div>
+      </button>
+      <figcaption className="mt-3 px-2 text-sm text-ink-soft">{IMAGES[imageKey][lang]}</figcaption>
+    </motion.figure>
+  );
+};
 
 export const PhotoGallerySection: React.FC<PhotoGallerySectionProps> = React.memo(({ lang }) => {
-  const allItems = PHOTO_GALLERY_ITEMS[lang];
-  const [selectedCategory, setSelectedCategory] = useState<GalleryCategory>('all');
-  const { openLightbox } = useLightbox();
-
   const isAr = lang === 'ar';
+  const { openLightbox } = useLightbox();
+  const scroller = useRef<HTMLDivElement>(null);
 
-  const categories: { id: GalleryCategory; label: string }[] = [
-    { id: 'all', label: isAr ? 'جميع الصور' : 'All Photos' },
-    { id: 'courtyard', label: isAr ? 'الصحن والفناء' : 'Courtyard' },
-    { id: 'interior', label: isAr ? 'الحرم والداخل' : 'Sanctuary' },
-    { id: 'mosaics', label: isAr ? 'الفسيفساء' : 'Mosaics' },
-    { id: 'minarets', label: isAr ? 'المآذن' : 'Minarets' },
-    { id: 'damascus', label: isAr ? 'دمشق القديمة' : 'Old Damascus' },
-  ];
+  const slides: LightboxImageItem[] = useMemo(
+    () => GALLERY_KEYS.map((key) => ({ src: imgSrc(key), title: IMAGES[key][lang] })),
+    [lang]
+  );
 
-  const filteredItems = selectedCategory === 'all'
-    ? allItems
-    : allItems.filter((item) => item.category === selectedCategory);
-
-  const handleOpenPhoto = (index: number) => {
-    const lightboxImages: LightboxImageItem[] = filteredItems.map((item) => ({
-      id: item.id,
-      src: item.imageUrl,
-      title: item.title,
-      category: item.categoryName,
-      description: item.description,
-      location: item.location,
-      year: item.yearTaken,
-      citation: isAr ? 'أرشيف التوثيق البصري للجامع الأموي' : 'Umayyad Mosque Photographic Archive',
-    }));
-
-    openLightbox(lightboxImages, index);
+  const scrollByStep = (next: boolean) => {
+    const el = scroller.current;
+    if (!el) return;
+    const amount = el.clientWidth * 0.6;
+    const toRight = isAr ? !next : next;
+    el.scrollBy({ left: toRight ? amount : -amount, behavior: 'smooth' });
   };
 
   return (
-    <section
-      id="gallery"
-      aria-labelledby="gallery-heading"
-      className="py-24 sm:py-32 px-4 sm:px-6 lg:px-12 bg-[#faf8f5] text-[#002623] relative scroll-mt-20 sm:scroll-mt-24 border-b border-primary-12"
-    >
-      <div className="max-w-6xl mx-auto space-y-12 sm:space-y-16">
-        {/* Unified Section Header & Introduction */}
-        <Reveal from="bottom" className="text-center max-w-2xl mx-auto space-y-3">
-          <h2
-            id="gallery-heading"
-            className="text-fluid-h2 font-bold font-heading text-[#002623]"
-          >
-            {isAr ? 'المعرض التوثيقي' : 'Photographic Archive'}
-          </h2>
+    <section id="gallery" aria-labelledby="gallery-heading" className="overflow-hidden bg-white py-24 sm:py-32">
+      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+        <SectionHead
+          id="gallery-heading"
+          no="04"
+          title={SECTIONS.gallery.title[lang]}
+          lead={SECTIONS.gallery.lead[lang]}
+          isAr={isAr}
+        />
+      </div>
 
-          <p
-            className="text-sm sm:text-base font-light leading-relaxed text-[#666666] max-w-xl mx-auto font-['Qomra',sans-serif]"
-            style={{ fontWeight: 300 }}
-          >
-            {isAr
-              ? 'مجموعة فوتوغرافية توثق معالم الجامع وتفاصيله المعمارية بدقة عالية.'
-              : 'A photographic collection documenting the mosque’s architectural landmarks in high definition.'}
-          </p>
-        </Reveal>
+      <div
+        ref={scroller}
+        tabIndex={0}
+        aria-label={isAr ? 'صور المعرض، مرّر أفقياً' : 'Gallery photos, scroll horizontally'}
+        className="flex snap-x snap-proximity scroll-px-8 items-start gap-5 overflow-x-auto px-8 pb-6 pt-4 [scrollbar-width:none] sm:scroll-px-20 sm:gap-8 sm:px-20 [&::-webkit-scrollbar]:hidden"
+      >
+        {GALLERY_KEYS.map((key, i) => (
+          <GalleryItem
+            key={key}
+            imageKey={key}
+            index={i}
+            lang={lang}
+            onOpen={(n) => openLightbox(slides, n)}
+          />
+        ))}
+      </div>
 
-        {/* Category Filters */}
-        <Reveal from="bottom" delay={0.1} className="flex items-center justify-center flex-wrap gap-2">
-          {categories.map((cat) => {
-            const isSelected = selectedCategory === cat.id;
-
-            return (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-light font-['Qomra',sans-serif] transition-all duration-200 cursor-pointer border select-none ${
-                  isSelected
-                    ? 'bg-[#002623] text-white border-[#002623] shadow-2xs'
-                    : 'bg-white text-[#637381] border-primary-12 hover:bg-[#002623]/5 hover:text-[#002623]'
-                }`}
-                style={{ fontWeight: isSelected ? 400 : 300 }}
-              >
-                {cat.label}
-              </button>
-            );
-          })}
-        </Reveal>
-
-        {/* Unified Photo Mosaic Grid (Compact, Seamless, Zero Lag, Information in Lightbox) */}
-        <Reveal from="bottom" delay={0.15}>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {filteredItems.map((item, idx) => (
-              <div
-                key={item.id}
-                onClick={() => handleOpenPhoto(idx)}
-                title={isAr ? `${item.title} — اضغط للتكبير والتفاصيل` : `${item.title} — Click to view details`}
-                className="group relative aspect-square rounded-2xl overflow-hidden bg-[#e8e6df] hover:shadow-lg transition-all duration-300 cursor-pointer shadow-2xs"
-              >
-                {/* Image */}
-                <SafeImage
-                  src={item.imageUrl}
-                  alt={item.title}
-                  category={item.categoryName}
-                  era={item.yearTaken}
-                  variant="architectural"
-                  aspectRatio="aspect-square"
-                  className="w-full h-full"
-                  imgClassName="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                  objectPosition={item.objectPosition || 'object-center'}
-                  showOverlay={false}
-                  lang={lang}
-                />
-
-                {/* Subtle Hover Zoom Preview */}
-                <div className="absolute inset-0 bg-black/25 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-3 flex items-start justify-end">
-                  <div className="w-8 h-8 rounded-full bg-white/40 backdrop-blur-md text-[#002623] flex items-center justify-center shadow-xs">
-                    <Maximize2 className="w-3.5 h-3.5" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Reveal>
+      <div className="mx-auto mt-4 flex max-w-6xl gap-3 px-5 sm:px-8">
+        <button
+          type="button"
+          onClick={() => scrollByStep(false)}
+          aria-label={isAr ? 'السابق' : 'Previous'}
+          className="tint-cream grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-line text-ink transition-colors hover:border-gold"
+        >
+          {isAr ? (
+            <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
+          ) : (
+            <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => scrollByStep(true)}
+          aria-label={isAr ? 'التالي' : 'Next'}
+          className="tint-cream grid h-12 w-12 cursor-pointer place-items-center rounded-full border border-line text-ink transition-colors hover:border-gold"
+        >
+          {isAr ? (
+            <ChevronLeft className="h-5 w-5" strokeWidth={1.5} />
+          ) : (
+            <ChevronRight className="h-5 w-5" strokeWidth={1.5} />
+          )}
+        </button>
       </div>
     </section>
   );
 });
-

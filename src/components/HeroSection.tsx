@@ -1,245 +1,122 @@
 import React, { useRef } from 'react';
-import { motion, useScroll, useTransform } from 'motion/react';
-import { Clock, Compass, ChevronDown } from 'lucide-react';
-import { Language, SectionId } from '../types';
-import { HERO_CONTENT } from '../data/content';
+import { motion, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { ChevronDown } from 'lucide-react';
+import { Language, LightboxImageItem } from '../types';
+import { GATES, HISTORY, HOME } from '../data/content';
+import { imgAlt, imgSrc } from '../data/images';
+import { useLightbox } from '../context/LightboxContext';
 import { PrayerWidget } from './PrayerWidget';
-import { Reveal, Stagger, RevealItem } from './Motion';
+import { CountUp, ParallaxImage, Reveal } from './Motion';
 
 interface HeroSectionProps {
   lang: Language;
-  onNavigate?: (sectionId: SectionId) => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = React.memo(({ lang, onNavigate }) => {
-  const content = HERO_CONTENT[lang];
-  const containerRef = useRef<HTMLDivElement>(null);
+const STATS = [
+  { value: HISTORY.length, label: { ar: 'حقب تاريخية', en: 'Historical eras' } },
+  { value: 3, label: { ar: 'مآذن', en: 'Minarets' } },
+  { value: GATES.length, label: { ar: 'مداخل', en: 'Entrances' } },
+];
 
-  const { scrollY } = useScroll();
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ['start start', 'end start'],
-  });
+export const HeroSection: React.FC<HeroSectionProps> = React.memo(({ lang }) => {
+  const isAr = lang === 'ar';
+  const lines = HOME.title[lang];
+  const firstScreen = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const { openLightbox } = useLightbox();
 
-  // Fade out early and swiftly to prevent colliding with cards below when scrolling down
-  const textY = useTransform(scrollYProgress, [0, 0.35], ['0%', '-30px']);
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
-  const pointerEvents = useTransform(opacity, (o) => (o <= 0.02 ? 'none' : 'auto'));
-  const scrollIndicatorOpacity = useTransform(scrollY, [0, 50], [1, 0]);
+  const { scrollYProgress } = useScroll({ target: firstScreen, offset: ['start start', 'end start'] });
+  const textY = useTransform(scrollYProgress, [0, 0.7], ['0%', '18%']);
+  const textOpacity = useTransform(scrollYProgress, [0, 0.6], [1, 0]);
 
-  const handleScrollToNext = () => {
-    const el = document.getElementById('hero-pillars') || document.getElementById('architecture');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
+  const goNext = () => {
+    document.getElementById('history')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const scrollToPrayers = (e: React.MouseEvent) => {
-    e.preventDefault();
-    const el = document.getElementById('prayer-times-widget');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  };
-
-  const scrollToArchitecture = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (onNavigate) {
-      onNavigate('architecture');
-    } else {
-      const el = document.getElementById('architecture');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+  const slides: LightboxImageItem[] = [{ src: imgSrc('hero'), title: imgAlt('hero', lang) }];
 
   return (
-    <section
-      id="home"
-      aria-labelledby="hero-main-title"
-      className="relative bg-[#faf8f5] text-[#002623] px-4 sm:px-6 lg:px-12 overflow-hidden scroll-mt-20 sm:scroll-mt-24 border-b border-primary-12"
-    >
-      <div className="max-w-5xl mx-auto relative z-10">
-        {/* Main Hero Header: First Viewport Presence with Balanced Vertical Flow */}
-        <div
-          ref={containerRef}
-          className="relative min-h-[calc(95svh-77px)] flex flex-col justify-between items-center pt-14 sm:pt-20 md:pt-24 pb-6 sm:pb-8 text-center"
+    <section id="home" aria-labelledby="hero-title" className="relative overflow-hidden bg-white">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-gold/20 blur-3xl sm:h-[28rem] sm:w-[28rem]"
+      />
+
+      <div
+        ref={firstScreen}
+        className="relative mx-auto flex min-h-[calc(100svh-77px)] max-w-6xl flex-col items-center justify-center px-5 pt-8 pb-12 text-center sm:px-8 sm:pt-10 sm:pb-16"
+      >
+        <motion.div
+          style={reduce ? undefined : { y: textY, opacity: textOpacity }}
+          className="flex w-full flex-col items-center"
         >
-          <motion.div
-            style={{ y: textY, opacity, pointerEvents }}
-            className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center flex-1 my-auto"
-          >
-            <Reveal from="bottom" immediate={true} className="w-full flex flex-col items-center">
-            {/* Monumental Grand Title - Bold Architectural Weight (700) */}
-            <h1
-              id="hero-main-title"
-              className="text-display-medium md:text-hero font-heading tracking-tight font-bold"
-              style={{ fontWeight: 700 }}
-            >
-              <span className="block text-[#b9a779] font-bold" style={{ fontWeight: 700 }}>
-                {lang === 'ar' ? 'الجامع الأموي' : 'The Great Umayyad'}
-              </span>
-              <span className="block text-[#002623] mt-2 sm:mt-3 font-bold" style={{ fontWeight: 700 }}>
-                {lang === 'ar' ? 'الكبير بدمشق' : 'Mosque of Damascus'}
-              </span>
+          <Reveal immediate>
+            <h1 id="hero-title" className="hero-title">
+              <span className="block text-gold">{lines[0]}</span>
+              <span className="block">{lines[1]}</span>
             </h1>
-
-            {/* Official Lead Paragraph - Exact 3-line structure with balanced measured spacing */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.12 }}
-              className="mt-6 sm:mt-8 text-center max-w-[700px] mx-auto text-[#003d30] text-xl sm:text-2xl md:text-[25px] leading-[1.8] sm:leading-[1.85] font-light font-['Qomra',sans-serif] space-y-1"
-              style={{ fontFamily: "'Qomra', sans-serif", fontWeight: 300 }}
-            >
-              {content.description.split('\n').map((line, idx) => (
-                <span key={idx} className="block">
-                  {line}
-                </span>
-              ))}
-            </motion.p>
-
-            {/* Two Distinctive Action Buttons: Enlarged, Side by Side, Refined Rounded-[14px] Corners */}
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.22 }}
-              className="mt-8 sm:mt-10 flex flex-row items-center justify-center gap-3 sm:gap-4.5 flex-nowrap max-w-full"
-            >
-              {/* Button 1: Dark Deep Green Primary Button (مواقيت الصلاة) */}
-              <button
-                type="button"
-                onClick={scrollToPrayers}
-                className="group inline-flex items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-8 md:px-9 py-3 sm:py-3.5 md:py-4 rounded-[14px] bg-[#002623] hover:bg-[#003d30] text-[#f7f6f0] border border-[#002623] hover:border-[#003d30] font-light text-base sm:text-lg tracking-normal shadow-xs hover:shadow-sm transition-all duration-200 cursor-pointer focus:outline-none whitespace-nowrap"
-              >
-                <Clock className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#b9a779] shrink-0 transition-transform duration-200 group-hover:scale-110" />
-                <span className="font-light">{lang === 'ar' ? 'مواقيت الصلاة' : 'Prayer Times'}</span>
-              </button>
-
-              {/* Button 2: Contrasting Ivory White & Gold Border Button (معالم الصرح المعماري) */}
-              <button
-                type="button"
-                onClick={scrollToArchitecture}
-                className="group inline-flex items-center justify-center gap-2.5 sm:gap-3 px-6 sm:px-8 md:px-9 py-3 sm:py-3.5 md:py-4 rounded-[14px] bg-white hover:bg-[#f7f6f0] text-[#002623] border border-[#b9a779]/60 hover:border-[#b9a779] font-light text-base sm:text-lg tracking-normal shadow-2xs hover:shadow-xs transition-all duration-200 cursor-pointer focus:outline-none whitespace-nowrap"
-              >
-                <Compass className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-[#002623] shrink-0 transition-transform duration-200 group-hover:rotate-45" />
-                <span className="font-light">{lang === 'ar' ? 'معالم الصرح المعماري' : 'Sanctuary Architecture'}</span>
-              </button>
-            </motion.div>
-
-            {/* Key Heritage Landmarks Strip: Clear, Bold, Architectural Metrics */}
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.28 }}
-              className="mt-10 sm:mt-12 pt-7 sm:pt-9 border-t border-[#b9a779]/25 w-full max-w-2xl mx-auto"
-            >
-              <div className="grid grid-cols-3 gap-2 sm:gap-6 items-center">
-                {/* Metric 1 */}
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-light font-heading text-[#002623] tracking-tight">
-                    {lang === 'ar' ? '705 م' : '705 CE'}
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#524e47] font-light mt-1">
-                    {lang === 'ar' ? 'سنة التأسيس (86 هـ)' : 'Founded (86 AH)'}
-                  </span>
-                </div>
-
-                {/* Metric 2 */}
-                <div className="flex flex-col items-center text-center border-x border-[#b9a779]/25 px-2">
-                  <span className="text-xl sm:text-2xl md:text-3xl font-light font-heading text-[#b9a779] tracking-tight">
-                    {lang === 'ar' ? 'الوليد بن عبد الملك' : 'Al-Walid I'}
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#524e47] font-light mt-1">
-                    {lang === 'ar' ? 'الخليفة الباني' : 'Caliph & Founder'}
-                  </span>
-                </div>
-
-                {/* Metric 3 */}
-                <div className="flex flex-col items-center text-center">
-                  <span className="text-2xl sm:text-3xl md:text-4xl font-light font-heading text-[#002623] tracking-tight">
-                    {lang === 'ar' ? 'UNESCO' : 'UNESCO'}
-                  </span>
-                  <span className="text-xs sm:text-sm text-[#524e47] font-light mt-1">
-                    {lang === 'ar' ? 'تراث عالمي (1979)' : 'World Heritage (1979)'}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
           </Reveal>
-        </motion.div>
 
-        {/* مؤشر السكرول النابض بالأسفل - متناسق وهادئ ومضبوط بصرياً */}
-        <motion.button
-          type="button"
-          onClick={handleScrollToNext}
-          style={{ opacity: scrollIndicatorOpacity }}
-          animate={{ y: [0, 5, 0] }}
-          transition={{
-            y: { repeat: Infinity, duration: 2.2, ease: 'easeInOut' },
-          }}
-          className="mt-6 sm:mt-8 mb-3 sm:mb-4 flex flex-col items-center gap-1 text-[#002623]/65 hover:text-[#002623] transition-colors cursor-pointer group focus:outline-none select-none z-20 py-2 px-4 mx-auto"
-          aria-label={lang === 'ar' ? 'مرر للاستكشاف' : 'Scroll to explore'}
-        >
-          <span className="text-xs sm:text-[13px] font-light tracking-wider text-[#002623]/75 group-hover:text-[#002623]">
-            {lang === 'ar' ? 'مرر للاستكشاف' : 'Scroll to explore'}
-          </span>
-          <ChevronDown className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-[#b9a779] transition-transform duration-300 group-hover:translate-y-0.5" />
-        </motion.button>
+          <Reveal immediate delay={0.08}>
+            <p className="lead mx-auto mt-6 max-w-2xl">{HOME.lead[lang]}</p>
+          </Reveal>
+
+          <Reveal immediate delay={0.16} className="mt-12 sm:mt-16 w-full">
+            <ul className="mx-auto flex max-w-xl items-stretch justify-center">
+              {STATS.map((s, i) => (
+                <li key={i} className={`flex-1 px-3 ${i > 0 ? 'border-s border-gold/50' : ''}`}>
+                  <div className="text-4xl font-light text-ink sm:text-5xl">
+                    <CountUp value={s.value} />
+                  </div>
+                  <p className="mt-1 text-sm text-ink-soft sm:text-base">{s.label[lang]}</p>
+                </li>
+              ))}
+            </ul>
+          </Reveal>
+
+          <motion.button
+            type="button"
+            onClick={goNext}
+            aria-label={isAr ? 'انتقل إلى القسم التالي' : 'Go to the next section'}
+            initial={{ opacity: 0, y: 10 }}
+            animate={reduce ? { opacity: 1, y: 0 } : { opacity: 1, y: [0, 8, 0] }}
+            transition={{
+              opacity: { delay: 0.6, duration: 0.8 },
+              y: { repeat: Infinity, duration: 2.4, ease: 'easeInOut' },
+            }}
+            className="pill tint-cream mt-12 sm:mt-16 cursor-pointer text-ink-soft transition-colors hover:border-gold"
+          >
+            <span>{isAr ? 'تابع التمرير' : 'Scroll to explore'}</span>
+            <ChevronDown className="h-4 w-4" strokeWidth={1.5} aria-hidden="true" />
+          </motion.button>
+        </motion.div>
       </div>
 
-      {/* Core Pillars & Prayer Schedule Widget - Placed Cleanly on Scroll */}
-      <div id="hero-pillars" className="pt-12 sm:pt-16 pb-16 sm:pb-20 space-y-12 sm:space-y-16">
-        {/* 3 Core Pillars: Centered, Polished, Editorial Cards with Refined Architectural Index */}
-        <Stagger stagger={0.08} className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {content.pillars.map((pillar, idx) => (
-            <RevealItem
-              key={idx}
-              className="p-7 sm:p-8 rounded-2xl bg-white border border-primary-12 shadow-2xs flex flex-col items-center justify-between text-center hover:border-[#b9a779]/50 hover:shadow-xs transition-all duration-300 group"
+      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-4 sm:px-8 sm:pb-32">
+        <Reveal>
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => openLightbox(slides, 0)}
+              aria-label={isAr ? 'تكبير الصورة' : 'Enlarge image'}
+              className="block w-full cursor-zoom-in"
             >
-              <div className="flex flex-col items-center space-y-3 w-full">
-                {/* Refined Architectural Chapter Index - font-light */}
-                <div className="flex items-center justify-center gap-2.5 mb-1">
-                  <span className="w-6 h-px bg-[#b9a779]/50 transition-all duration-300 group-hover:w-9 group-hover:bg-[#b9a779]" aria-hidden="true" />
-                  <span
-                    className="text-xs sm:text-sm font-light font-heading text-[#b9a779] tracking-widest px-1"
-                    style={{ fontFamily: "'Qomra', sans-serif" }}
-                  >
-                    0{idx + 1}
-                  </span>
-                  <span className="w-6 h-px bg-[#b9a779]/50 transition-all duration-300 group-hover:w-9 group-hover:bg-[#b9a779]" aria-hidden="true" />
-                </div>
+              <ParallaxImage
+                src={imgSrc('hero')}
+                alt={imgAlt('hero', lang)}
+                lang={lang}
+                className="h-[56svh] min-h-[320px] w-full rounded-[2.5rem] bg-[#ebebeb] shadow-[0_24px_60px_-30px_rgba(0,38,35,0.18)] sm:h-[66svh]"
+              />
+            </button>
+            <span className="pointer-events-none absolute start-5 top-5 max-w-[85%] truncate rounded-full border border-white/30 bg-ink/45 px-4 py-2 text-sm text-white backdrop-blur-md">
+              {imgAlt('hero', lang)}
+            </span>
+          </div>
+        </Reveal>
 
-                {/* Title remains bold */}
-                <h3 className="text-xl sm:text-2xl font-bold font-heading text-[#002623] group-hover:text-[#b9a779] transition-colors">
-                  {pillar.title}
-                </h3>
-
-                {/* Description in lightest font-light weight */}
-                <p
-                  className="text-sm sm:text-[15px] text-[#2D2A26] leading-relaxed font-light font-['Qomra',sans-serif] max-w-xs mx-auto"
-                  style={{ fontWeight: 300 }}
-                >
-                  {pillar.desc}
-                </p>
-              </div>
-
-              {/* Centered Polished Tag Badge in lightest font-light weight */}
-              <div
-                className="mt-5 pt-4 w-full border-t border-[#f2efe9] flex items-center justify-center gap-2 text-xs font-light text-[#524e47]"
-                style={{ fontWeight: 300 }}
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-[#b9a779]" aria-hidden="true" />
-                <span className="font-light">{pillar.tag}</span>
-              </div>
-            </RevealItem>
-          ))}
-        </Stagger>
-
-          {/* Integrated Prayer Schedule Widget with Reveal */}
-          <Reveal from="bottom">
-            <PrayerWidget lang={lang} />
-          </Reveal>
-        </div>
+        <Reveal className="mt-6 sm:mt-8">
+          <PrayerWidget lang={lang} />
+        </Reveal>
       </div>
     </section>
   );

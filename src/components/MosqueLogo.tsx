@@ -2,7 +2,7 @@ import React from 'react';
 import { Language } from '../types';
 
 interface MosqueLogoProps {
-  variant?: 'horizontal' | 'vertical' | 'icon' | 'logotype';
+  variant?: 'horizontal' | 'icon';
   colorMode?: 'gold' | 'off-white' | 'white' | 'darkgreen' | 'black' | 'dark' | 'light';
   size?: 'sm' | 'md' | 'lg' | 'xl';
   lang?: Language;
@@ -27,15 +27,6 @@ export const MosqueLogo: React.FC<MosqueLogoProps> = ({
         width: 190,
         height: 182,
         alt: lang === 'ar' ? 'شعار وزارة الأوقاف' : 'Ministry of Endowments Emblem',
-      };
-    }
-
-    if (variant === 'vertical') {
-      return {
-        src: '/logo/vertical-dark.svg',
-        width: 181,
-        height: 217,
-        alt: lang === 'ar' ? 'وزارة الأوقاف — الجمهورية العربية السورية' : 'Ministry of Endowments — Syrian Arab Republic',
       };
     }
 

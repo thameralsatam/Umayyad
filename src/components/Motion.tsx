@@ -1,232 +1,136 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion, useInView, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { Language } from '../types';
+import { Picture } from './Picture';
 
-/**
- * Motion tokens identical to the official Ministry of Endowments Next.js codebase (mow-identity)
- */
-export const MOTION_TOKENS = {
-  DISTANCE: 24,
-  DURATION: {
-    fast: 0.5,
-    base: 0.85,
-    slow: 1.2,
-  },
-  EASE: [0.22, 1, 0.36, 1] as const,
-  STAGGER: 0.09,
-  VIEWPORT: {
-    once: true,
-    amount: 0.15,
-    margin: '0px 0px -10% 0px',
-  },
-};
+const EASE = [0.22, 1, 0.36, 1] as const;
 
-export type Direction = 'top' | 'bottom' | 'start' | 'end' | 'none';
-
-const getOffset = (from?: string, distance: number = MOTION_TOKENS.DISTANCE, isRtl: boolean = true) => {
-  switch (from) {
-    case 'top':
-      return { y: -distance };
-    case 'bottom':
-      return { y: distance };
-    case 'start':
-      return { x: isRtl ? distance : -distance };
-    case 'end':
-      return { x: isRtl ? -distance : distance };
-    case 'none':
-    default:
-      return {};
-  }
-};
-
-export interface RevealProps {
+interface RevealProps {
   children: React.ReactNode;
-  as?: string;
-  from?: Direction;
-  distance?: number;
   delay?: number;
-  duration?: number;
-  immediate?: boolean;
   className?: string;
-  isRtl?: boolean;
-  once?: boolean;
-  'aria-label'?: string;
-  id?: string;
+  immediate?: boolean;
+  /** إزاحة أفقية بالبكسل (موجب = من اليمين، سالب = من اليسار). بدونها يكون الظهور من الأسفل */
+  x?: number;
+  from?: string; // مقبول للتوافق مع Footer، ولا يُستخدم
 }
 
-/**
- * Reveal: Replicating official Ministry Reveal component
- * Smoothly fades and slides an element into view as user scrolls.
- */
-export const Reveal: React.FC<RevealProps> = ({
-  children,
-  from = 'bottom',
-  distance = MOTION_TOKENS.DISTANCE,
-  delay = 0,
-  duration = MOTION_TOKENS.DURATION.base,
-  immediate = false,
-  className = '',
-  isRtl = true,
-  once = true,
-  'aria-label': ariaLabel,
-  id,
-}) => {
-  const initial = {
-    opacity: 0,
-    ...getOffset(from, distance, isRtl),
-  };
-
-  const visible = {
-    opacity: 1,
-    x: 0,
-    y: 0,
-  };
+/** ظهور ناعم: تلاشي مع انزلاق من الأسفل أو من أحد الجانبين */
+export const Reveal: React.FC<RevealProps> = ({ children, delay = 0, className = '', immediate = false, x = 0 }) => {
+  const reduce = useReducedMotion();
+  const hidden = x
+    ? { opacity: 0, x: reduce ? 0 : x }
+    : { opacity: 0, y: reduce ? 0 : 24 };
+  const shown = { opacity: 1, x: 0, y: 0 };
 
   return (
     <motion.div
-      id={id}
-      data-motion=""
-      aria-label={ariaLabel}
-      className={`${className} transform-gpu`}
-      initial={initial}
-      {...(immediate
-        ? { animate: visible }
-        : {
-            whileInView: visible,
-            viewport: { ...MOTION_TOKENS.VIEWPORT, once },
-          })}
-      transition={{
-        duration,
-        delay,
-        ease: MOTION_TOKENS.EASE,
-      }}
-    >
-      {children}
-    </motion.div>
-  );
-};
-
-export interface StaggerProps {
-  children: React.ReactNode;
-  stagger?: number;
-  delay?: number;
-  immediate?: boolean;
-  className?: string;
-  once?: boolean;
-  id?: string;
-}
-
-/**
- * Stagger: Replicating official Ministry Stagger container
- * Cascades reveal animations across child RevealItem components.
- */
-export const Stagger: React.FC<StaggerProps> = ({
-  children,
-  stagger = MOTION_TOKENS.STAGGER,
-  delay = 0,
-  immediate = false,
-  className = '',
-  once = true,
-  id,
-}) => {
-  return (
-    <motion.div
-      id={id}
-      data-motion=""
       className={className}
-      initial="hidden"
+      initial={hidden}
       {...(immediate
-        ? { animate: 'shown' }
-        : {
-            whileInView: 'shown',
-            viewport: { ...MOTION_TOKENS.VIEWPORT, once },
-          })}
-      variants={{
-        hidden: {},
-        shown: {
-          transition: {
-            staggerChildren: stagger,
-            delayChildren: delay,
-          },
-        },
-      }}
+        ? { animate: shown }
+        : { whileInView: shown, viewport: { once: true, amount: 0.3, margin: '0px 0px -12% 0px' } })}
+      transition={{ duration: 0.95, delay, ease: EASE }}
     >
       {children}
     </motion.div>
   );
 };
 
-export interface RevealItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  from?: Direction;
-  distance?: number;
-  duration?: number;
-  className?: string;
-  isRtl?: boolean;
-  type?: string;
-  disabled?: boolean;
-}
-
-/**
- * RevealItem: Child of Stagger
- */
-export const RevealItem: React.FC<RevealItemProps> = ({
-  children,
-  from = 'bottom',
-  distance = MOTION_TOKENS.DISTANCE,
-  duration = MOTION_TOKENS.DURATION.base,
+/** عدّاد يصعد من الصفر مرة واحدة عند ظهوره */
+export const CountUp: React.FC<{ value: number; duration?: number; className?: string }> = ({
+  value,
+  duration = 1600,
   className = '',
-  isRtl = true,
-  ...rest
 }) => {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: '-50px' });
+  const reduce = useReducedMotion();
+  const [n, setN] = useState(0);
+
+  useEffect(() => {
+    if (!inView) return;
+    if (reduce) {
+      setN(value);
+      return;
+    }
+    let frame = 0;
+    let start: number | null = null;
+    const step = (t: number) => {
+      if (start === null) start = t;
+      const p = Math.min((t - start) / duration, 1);
+      setN(Math.round(value * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) frame = requestAnimationFrame(step);
+    };
+    frame = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(frame);
+  }, [inView, value, duration, reduce]);
+
   return (
-    <motion.div
-      data-motion=""
-      className={`${className} transform-gpu`}
-      variants={{
-        hidden: {
-          opacity: 0,
-          ...getOffset(from, distance, isRtl),
-        },
-        shown: {
-          opacity: 1,
-          x: 0,
-          y: 0,
-          transition: {
-            duration,
-            ease: MOTION_TOKENS.EASE,
-          },
-        },
-      }}
-      {...(rest as any)}
-    >
-      {children}
-    </motion.div>
+    <span ref={ref} className={`tabular-nums ${className}`}>
+      {n}
+    </span>
   );
 };
 
+/** خط ذهبي رفيع يمتد عند الظهور */
+export const GoldRule: React.FC<{ isAr: boolean; className?: string }> = ({ isAr, className = '' }) => (
+  <motion.span
+    aria-hidden="true"
+    className={`block h-[2px] rounded-full bg-gold ${className}`}
+    style={{ transformOrigin: isAr ? 'right center' : 'left center' }}
+    initial={{ scaleX: 0 }}
+    whileInView={{ scaleX: 1 }}
+    viewport={{ once: true, amount: 0.8 }}
+    transition={{ duration: 0.9, ease: EASE }}
+  />
+);
 
-export interface RuleProps {
+interface ParallaxImageProps {
+  src: string;
+  alt: string;
+  lang: Language;
   className?: string;
-  isRtl?: boolean;
+  eager?: boolean;
 }
 
 /**
- * Rule: Animated dividing line expanding horizontally from start to end
+ * صورة بحركة موازية خفيفة (±5%) مع انتقال تدريجي عند تغيّر الصورة.
+ * تتعطل على الشاشات الصغيرة وعند تفعيل "تقليل الحركة".
  */
-export const Rule: React.FC<RuleProps> = ({ className = 'h-px bg-primary-12 w-full', isRtl = true }) => {
+export const ParallaxImage: React.FC<ParallaxImageProps> = ({ src, alt, lang, className = '', eager = false }) => {
+  const ref = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const [wide, setWide] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 0px)');
+    const update = () => setWide(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], ['-8%', '8%']);
+  const active = wide && !reduce;
+
   return (
-    <motion.span
-      aria-hidden="true"
-      data-motion=""
-      className={`block ${className}`}
-      style={{ transformOrigin: isRtl ? 'right' : 'left' }}
-      initial={{ scaleX: 0 }}
-      whileInView={{ scaleX: 1 }}
-      viewport={MOTION_TOKENS.VIEWPORT}
-      transition={{
-        duration: MOTION_TOKENS.DURATION.slow,
-        ease: MOTION_TOKENS.EASE,
-      }}
-    />
+    <div ref={ref} className={`relative isolate overflow-hidden ${className}`}>
+      <AnimatePresence initial={false}>
+        <motion.div
+          key={src}
+          className="absolute inset-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.6, ease: 'easeOut' }}
+        >
+          <motion.div className="h-full w-full will-change-transform" style={active ? { y, scale: 1.2 } : undefined}>
+            <Picture src={src} alt={alt} lang={lang} eager={eager} className="h-full w-full" />
+          </motion.div>
+        </motion.div>
+      </AnimatePresence>
+    </div>
   );
 };

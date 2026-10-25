@@ -5,10 +5,31 @@ const DAMASCUS_LATITUDE = 33.5117;
 const DAMASCUS_LONGITUDE = 36.3065;
 const DAMASCUS_TIMEZONE = 3; // UTC+3
 
+export function damascusNow(): Date {
+  const now = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    timeZone: 'Asia/Damascus',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    second: 'numeric',
+    hour12: false,
+  };
+  const parts = new Intl.DateTimeFormat('en-US', options).formatToParts(now);
+  const map: Record<string, number> = {};
+  for (const part of parts) {
+    if (part.type !== 'literal') {
+      map[part.type] = parseInt(part.value, 10);
+    }
+  }
+  return new Date(map.year, map.month - 1, map.day, map.hour === 24 ? 0 : map.hour, map.minute, map.second);
+}
+
 // Trigonometric helper functions in degrees
 const dSin = (d: number) => Math.sin((d * Math.PI) / 180);
 const dCos = (d: number) => Math.cos((d * Math.PI) / 180);
-const dTan = (d: number) => Math.tan((d * Math.PI) / 180);
 const dArcsin = (x: number) => (Math.asin(x) * 180) / Math.PI;
 const dArccos = (x: number) => (Math.acos(x) * 180) / Math.PI;
 const dArctan2 = (y: number, x: number) => (Math.atan2(y, x) * 180) / Math.PI;
@@ -24,21 +45,13 @@ function julianDay(year: number, month: number, day: number): number {
 }
 
 function sunCoordinates(d: number) {
-  // Mean anomaly of the Sun
   const M = (357.5291 + 0.98560028 * d) % 360;
-  // Mean longitude of the Sun
   const L0 = (280.459 + 0.98564736 * d) % 360;
-  // Center equation of the Sun
   const C = (1.9146 - 0.00005 * (d / 36525)) * dSin(M) + (0.019993 - 0.000101 * (d / 36525)) * dSin(2 * M) + 0.000289 * dSin(3 * M);
-  // True longitude of the Sun
   const L = (L0 + C) % 360;
-  // Obliquity of the ecliptic
   const epsilon = 23.439 - 0.0000004 * d;
-  // Declination of the Sun
   const delta = dArcsin(dSin(epsilon) * dSin(L));
-  // Right ascension
   const alpha = (dArctan2(dCos(epsilon) * dSin(L), dCos(L)) + 360) % 360;
-  // Equation of Time in minutes
   const eqTime = (L0 - alpha) * 4;
 
   return { delta, eqTime };
@@ -51,7 +64,6 @@ function computeHourAngle(angleBelowHorizon: number, latitude: number, delta: nu
 }
 
 function asrHourAngle(latitude: number, delta: number, shadowFactor = 1): number | null {
-  // Shafi'i / Maliki / Hanbali standard is factor = 1
   const cotElevation = shadowFactor + Math.tan(Math.abs((latitude - delta) * Math.PI / 180));
   const elevation = (Math.atan(1 / cotElevation) * 180) / Math.PI;
   const cosH = (dSin(elevation) - dSin(latitude) * dSin(delta)) / (dCos(latitude) * dCos(delta));
@@ -93,11 +105,11 @@ export function formatTimeWithPeriod(timeStr: string, lang: Language): string {
   return `${h}:${m} ${periodEnglish}`;
 }
 
-// Precise Hijri Date using Intl with mathematical fallback
-export function getHijriDate(date: Date, lang: Language): string {
+export function getHijriDate(date: Date = damascusNow(), lang: Language = 'ar'): string {
   try {
     const locale = lang === 'ar' ? 'ar-u-ca-islamic-umalqura' : 'en-u-ca-islamic-umalqura';
     return new Intl.DateTimeFormat(locale, {
+      timeZone: 'Asia/Damascus',
       day: 'numeric',
       month: 'long',
       year: 'numeric',
@@ -136,9 +148,10 @@ export function getHijriDate(date: Date, lang: Language): string {
   }
 }
 
-export function calculateDamascusPrayerTimes(date: Date = new Date(), lang: Language = 'ar'): PrayerCalculationResult {
+export function calculateDamascusPrayerTimes(date: Date = damascusNow(), lang: Language = 'ar'): PrayerCalculationResult {
   const isAr = lang === 'ar';
   const gregorianDateStr = date.toLocaleDateString(isAr ? 'ar-SY' : 'en-US', {
+    timeZone: 'Asia/Damascus',
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -149,31 +162,24 @@ export function calculateDamascusPrayerTimes(date: Date = new Date(), lang: Lang
     ? 'الأذان الموحد لمدينة دمشق — توقيت الجامع الأموي الكبير'
     : 'Unified Damascus Adhan Schedule — Great Umayyad Mosque';
 
-  // Calculate Astronomical times for Damascus
   const jd = julianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
   const d = jd - 2451545.0;
   const { delta, eqTime } = sunCoordinates(d);
 
-  // Solar noon in hours (Damascus UTC+3, Longitude 36.3065)
   const solarNoon = 12 + DAMASCUS_TIMEZONE - (DAMASCUS_LONGITUDE / 15) - (eqTime / 60);
 
-  // Fajr: 18 degrees below horizon
   const fajrHA = computeHourAngle(18, DAMASCUS_LATITUDE, delta);
   const fajrHours = fajrHA !== null ? solarNoon - (fajrHA / 15) : 4.75;
 
-  // Sunrise: 0.833 degrees below horizon
   const sunriseHA = computeHourAngle(0.833, DAMASCUS_LATITUDE, delta);
   const sunriseHours = sunriseHA !== null ? solarNoon - (sunriseHA / 15) : 6.25;
 
-  // Asr: Standard shadow factor = 1
   const asrHA = asrHourAngle(DAMASCUS_LATITUDE, delta, 1);
   const asrHours = asrHA !== null ? solarNoon + (asrHA / 15) : 15.75;
 
-  // Maghrib / Sunset: 0.833 degrees below horizon
-  const sunsetHA = computeHourAngle(0.833, DAMASCUS_LATITUDE, delta);
-  const maghribHours = sunsetHA !== null ? solarNoon + (sunsetHA / 15) : 18.5;
+  const maghribHA = computeHourAngle(0.833, DAMASCUS_LATITUDE, delta);
+  const maghribHours = maghribHA !== null ? solarNoon + (maghribHA / 15) : 18.5;
 
-  // Isha: 17.5 degrees below horizon
   const ishaHA = computeHourAngle(17.5, DAMASCUS_LATITUDE, delta);
   const ishaHours = ishaHA !== null ? solarNoon + (ishaHA / 15) : 20.0;
 
@@ -184,7 +190,6 @@ export function calculateDamascusPrayerTimes(date: Date = new Date(), lang: Lang
   const maghribStr = decimalHoursToTimeString(maghribHours);
   const ishaStr = decimalHoursToTimeString(ishaHours);
 
-  // Current Damascus time in minutes from midnight
   const currentMinutesFromMidnight = date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
 
   const prayerSchedule = [
@@ -202,7 +207,6 @@ export function calculateDamascusPrayerTimes(date: Date = new Date(), lang: Lang
   if (next) {
     remainingMinutes = Math.round(next.minutes - currentMinutesFromMidnight);
   } else {
-    // Next is tomorrow's Fajr
     next = prayerSchedule[0];
     remainingMinutes = Math.round(24 * 60 - currentMinutesFromMidnight + next.minutes);
   }

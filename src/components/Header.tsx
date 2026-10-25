@@ -140,7 +140,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header
       dir={lang === 'ar' ? 'rtl' : 'ltr'}
-      className="shadow-nav relative z-50 flex h-[77px] w-full shrink-0 items-center justify-between border-b border-solid border-primary-12 bg-white px-[10px] md:px-[50px] lg:px-[100px] text-black"
+      className="shadow-nav sticky top-0 z-50 flex h-[77px] w-full shrink-0 items-center justify-between border-b border-solid border-primary-12 bg-white px-[10px] md:px-[50px] lg:px-[100px] text-black"
     >
       {/* Official Ministry Logo Brand with exact 162x58 / 181x64 proportions */}
       <a

@@ -1,44 +1,23 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Language, PrayerCalculationResult } from '../types';
-import { calculateDamascusPrayerTimes } from '../utils/prayerTimes';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Language } from '../types';
+import { calculateDamascusPrayerTimes, formatTimeWithPeriod } from '../utils/prayerTimes';
 
 interface PrayerWidgetProps {
   lang: Language;
 }
 
-// Helper to separate 12-hour numerical string and period
-function parse12HourTime(timeStr: string, lang: Language): { time: string; period: string } {
-  const [hoursStr, minutesStr] = timeStr.split(':');
-  let h = parseInt(hoursStr, 10);
-  const m = minutesStr || '00';
-
-  const isPM = h >= 12;
-  const period = lang === 'ar' ? (isPM ? 'م' : 'ص') : (isPM ? 'PM' : 'AM');
-
-  if (h > 12) h -= 12;
-  if (h === 0) h = 12;
-
-  return { time: `${h}:${m}`, period };
-}
-
 export const PrayerWidget: React.FC<PrayerWidgetProps> = React.memo(({ lang }) => {
-  const [minuteStamp, setMinuteStamp] = useState<number>(() => Math.floor(Date.now() / 60000));
+  const [stamp, setStamp] = useState<number>(() => Math.floor(Date.now() / 60000));
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      const currentMinute = Math.floor(Date.now() / 60000);
-      setMinuteStamp((prev) => (prev !== currentMinute ? currentMinute : prev));
-    }, 10000);
+    const timer = setInterval(() => setStamp(Math.floor(Date.now() / 60000)), 15000);
     return () => clearInterval(timer);
   }, []);
 
-  const data: PrayerCalculationResult = useMemo(() => {
-    return calculateDamascusPrayerTimes(new Date(), lang);
-  }, [minuteStamp, lang]);
-
+  const data = useMemo(() => calculateDamascusPrayerTimes(new Date(), lang), [stamp, lang]);
   const isAr = lang === 'ar';
 
-  const prayerItems = [
+  const items = [
     { id: 'fajr', name: isAr ? 'الفجر' : 'Fajr', time: data.fajr },
     { id: 'sunrise', name: isAr ? 'الشروق' : 'Sunrise', time: data.sunrise },
     { id: 'dhuhr', name: isAr ? 'الظهر' : 'Dhuhr', time: data.dhuhr },
@@ -48,63 +27,32 @@ export const PrayerWidget: React.FC<PrayerWidgetProps> = React.memo(({ lang }) =
   ];
 
   return (
-    <div
-      id="prayer-times-widget"
-      className="rounded-2xl bg-white border border-[#edebe0] p-6 sm:p-7 text-[#002623] space-y-5 shadow-2xs"
-    >
-      {/* Calm, Simplified Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#edebe0]">
-        <h3 className="text-lg sm:text-xl font-bold font-heading text-[#002623]">
-          {isAr ? 'مواقيت الصلاة' : 'Prayer Times'}
+    <div id="prayer-times-widget" className="card-soft p-4 sm:p-6">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-2 pb-4">
+        <h3 className="text-base font-medium text-ink">
+          {isAr ? 'مواقيت الصلاة في دمشق' : 'Prayer times in Damascus'}
         </h3>
-        <span className="text-xs text-[#78716c] font-light font-['Qomra',sans-serif]">
-          {data.hijriDate}
-        </span>
+        <span className="rounded-full tint-gold px-3 py-1 text-sm text-ink-soft">{data.hijriDate}</span>
       </div>
 
-      {/* 6 Minimalist Prayer Columns: Pure, Quiet & Direct */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-3">
-        {prayerItems.map((prayer) => {
-          const isNext = data.nextPrayer?.id === prayer.id;
-          const { time, period } = parse12HourTime(prayer.time, lang);
-
+      <dl className="grid grid-cols-3 gap-2 md:grid-cols-6">
+        {items.map((p) => {
+          const next = data.nextPrayer?.id === p.id;
           return (
             <div
-              key={prayer.id}
-              className={`rounded-xl py-3.5 px-3 flex flex-col items-center justify-center text-center transition-all duration-200 ${
-                isNext
-                  ? 'bg-[#002623] text-white'
-                  : 'bg-[#fafaf9] text-[#002623]'
+              key={p.id}
+              className={`rounded-2xl px-1 py-4 text-center transition-colors ${
+                next ? 'tint-gold ring-1 ring-gold' : 'bg-transparent'
               }`}
             >
-              <span
-                className={`text-xs font-light mb-1 ${
-                  isNext ? 'text-[#b9a779]' : 'text-[#78716c]'
-                }`}
-              >
-                {prayer.name}
-              </span>
-
-              <div className="flex items-baseline gap-1">
-                <span
-                  className={`text-2xl sm:text-[26px] font-light font-heading tracking-tight tabular-nums ${
-                    isNext ? 'text-white' : 'text-[#002623]'
-                  }`}
-                >
-                  {time}
-                </span>
-                <span
-                  className={`text-[11px] font-light ${
-                    isNext ? 'text-[#b9a779]' : 'text-[#78716c]'
-                  }`}
-                >
-                  {period}
-                </span>
-              </div>
+              <dt className={`text-sm ${next ? 'font-medium text-gold-deep' : 'text-ink-soft'}`}>{p.name}</dt>
+              <dd className="mt-1 text-xl font-light tabular-nums text-ink sm:text-2xl">
+                {formatTimeWithPeriod(p.time, lang)}
+              </dd>
             </div>
           );
         })}
-      </div>
+      </dl>
     </div>
   );
 });
