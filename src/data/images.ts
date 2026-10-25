@@ -5,7 +5,7 @@ export interface ImageEntry {
 }
 
 export const IMAGES = {
-  hero: { file: 'hero-damascus.webp', ar: 'الجامع الأموي الكبير في أفق دمشق القديمة', en: 'The Great Umayyad Mosque on the skyline of Old Damascus' },
+  hero: { file: 'hero-damascus.webp', ar: 'صحن الجامع الأموي الكبير', en: 'The courtyard of the Great Umayyad Mosque' },
   aramean: { file: 'history-aramean.webp', ar: 'العصر الآرامي', en: 'The Aramean era' },
   roman: { file: 'history-roman.webp', ar: 'العصر الروماني', en: 'The Roman era' },
   byzantine: { file: 'history-byzantine.webp', ar: 'العصر البيزنطي', en: 'The Byzantine era' },
