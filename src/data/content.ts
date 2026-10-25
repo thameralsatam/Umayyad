@@ -55,8 +55,8 @@ export const HOME = {
     en: ['The Great Umayyad', 'Mosque of Damascus'],
   },
   lead: {
-    ar: 'شُيّد في عهد الخليفة الوليد بن عبد الملك، وهو النموذج التأسيسي للمسجد الجامع في العمارة الإسلامية.',
-    en: 'Built under Caliph Al-Walid I, it set the founding model of the congregational mosque in Islamic architecture.',
+    ar: 'شُيّد في عهد الخليفة الوليد بن عبد الملك، ويُعدّ من أهم نماذج المسجد الجامع في العمارة الإسلامية.',
+    en: 'Built under Caliph Al-Walid I, it is among the most influential models of the congregational mosque in Islamic architecture.',
   },
   facts: [
     { value: { ar: '705م', en: '705 CE' }, label: { ar: 'التأسيس', en: 'Founded' } },
@@ -190,8 +190,8 @@ export const MOSAICS: MosaicItem[] = [
     tab: { ar: 'وادي بردى', en: 'Barada Valley' },
     title: { ar: 'جدارية وادي بردى', en: 'The Barada Valley Mural' },
     text: {
-      ar: 'تمتد على الرواق الغربي للصحن، وتصوّر نهر بردى وبساتين الغوطة وعمائر دمشق بفصوص من الزجاج المذهب والملوّن، وهي من أهم ما بقي من الفسيفساء الإسلامية المبكرة.',
-      en: 'Along the western arcade of the courtyard, it depicts the Barada river, the orchards of the Ghouta and the buildings of Damascus in gilded and coloured glass, one of the most important surviving early Islamic mosaics.',
+      ar: 'تمتد على الرواق الغربي للصحن، وتصوّر نهر بردى وبساتين الغوطة وعمائر دمشق بفصوص من الزجاج المذهب والملوّن، وهي من أهم ما بقي من الفسيفساء الإسلامية المبكرة، وتجمع بين أجزاء أصلية وأخرى رُمّمت لاحقاً.',
+      en: 'Along the western arcade of the courtyard, it depicts the Barada river, the orchards of the Ghouta and the buildings of Damascus in gilded and coloured glass, one of the most important surviving early Islamic mosaics, combining original sections with later restorations.',
     },
     image: 'mosaicBarada',
   },
@@ -200,8 +200,8 @@ export const MOSAICS: MosaicItem[] = [
     tab: { ar: 'الأشجار', en: 'The Trees' },
     title: { ar: 'أشجار الفسيفساء', en: 'The Mosaic Trees' },
     text: {
-      ar: 'أشجار وارفة من الزجاج الأخضر والذهبي ترمز إلى الوفرة والسكينة، وتشهد على مهارة حرفيي بلاد الشام في صناعة الزجاج.',
-      en: 'Leafy trees in green and gold glass evoke abundance and serenity, and testify to the skill of the Levantine glass craftsmen.',
+      ar: 'أشجار وارفة من الزجاج الأخضر والذهبي تضفي على الجدران معنى الوفرة والسكينة، وهي من أبرز ما يميّز زخارف الجامع.',
+      en: 'Leafy trees in green and gold glass lend the walls a sense of abundance and serenity, and are among the most distinctive features of the mosque’s decoration.',
     },
     image: 'mosaicTree',
   },
@@ -210,8 +210,8 @@ export const MOSAICS: MosaicItem[] = [
     tab: { ar: 'قبة الخزنة', en: 'Dome of the Treasury' },
     title: { ar: 'فسيفساء قبة الخزنة', en: 'Mosaics of the Treasury Dome' },
     text: {
-      ar: 'حجرة مثمنة قائمة على ثمانية أعمدة في الصحن، يعود بناؤها إلى العصر العباسي، وتكسو جدرانها زخارف فسيفسائية نباتية.',
-      en: 'An octagonal chamber raised on eight columns in the courtyard, dating to the Abbasid period, with plant motifs in mosaic on its walls.',
+      ar: 'حجرة مثمنة قائمة على ثمانية أعمدة قديمة في الصحن، بُنيت في العصر العباسي نحو سنة 789م. تكسو جدرانها الخارجية فسيفساء أُعيد تنفيذ معظمها في أواخر القرن العشرين على نمط فسيفساء الجامع الأموية.',
+      en: 'An octagonal chamber raised on eight ancient columns in the courtyard, built in the Abbasid period around 789 CE. Its outer walls are covered in mosaics, most of them recreated in the late 20th century in the manner of the mosque’s Umayyad mosaics.',
     },
     image: 'domeTreasury',
   },
@@ -245,8 +245,8 @@ export const GATES: GateItem[] = [
     direction: { ar: 'الشرق', en: 'East' },
     name: { ar: 'باب جيرون', en: 'Bab Jayrun' },
     summary: {
-      ar: 'مدخل شرقي يطل على درج حجري واسع باتجاه حي النوفرة.',
-      en: 'The eastern entrance, opening onto a wide stone stair toward the Nawfara quarter.',
+      ar: 'المدخل الشرقي للجامع، وكانت تقوم خارجه ساعة جيرون المائية التي بُنيت في عهد نور الدين سنة 1154م.',
+      en: 'The eastern entrance. The Jayrun water clock, built under Nur ad-Din in 1154, once stood outside it.',
     },
     more: { ar: 'يفضي إلى الرواق الشرقي للصحن.', en: 'It leads into the eastern arcade of the courtyard.' },
   },

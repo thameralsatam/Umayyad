@@ -6,7 +6,10 @@ const DAMASCUS_LONGITUDE = 36.3065;
 const DAMASCUS_TIMEZONE = 3; // UTC+3
 
 export function damascusNow(): Date {
-  const now = new Date();
+  return damascusWall(new Date());
+}
+
+export function damascusWall(now: Date): Date {
   const options: Intl.DateTimeFormatOptions = {
     timeZone: 'Asia/Damascus',
     year: 'numeric',
@@ -162,7 +165,8 @@ export function calculateDamascusPrayerTimes(date: Date = damascusNow(), lang: L
     ? 'الأذان الموحد لمدينة دمشق — توقيت الجامع الأموي الكبير'
     : 'Unified Damascus Adhan Schedule — Great Umayyad Mosque';
 
-  const jd = julianDay(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const wall = damascusWall(date);
+  const jd = julianDay(wall.getFullYear(), wall.getMonth() + 1, wall.getDate());
   const d = jd - 2451545.0;
   const { delta, eqTime } = sunCoordinates(d);
 
@@ -190,7 +194,7 @@ export function calculateDamascusPrayerTimes(date: Date = damascusNow(), lang: L
   const maghribStr = decimalHoursToTimeString(maghribHours);
   const ishaStr = decimalHoursToTimeString(ishaHours);
 
-  const currentMinutesFromMidnight = date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
+  const currentMinutesFromMidnight = wall.getHours() * 60 + wall.getMinutes() + wall.getSeconds() / 60;
 
   const prayerSchedule = [
     { id: 'fajr', name: isAr ? 'الفجر' : 'Fajr', minutes: fajrHours * 60, timeStr: fajrStr },
