@@ -12,11 +12,43 @@ import { LightboxProvider } from './context/LightboxContext';
 
 const SECTION_IDS: SectionId[] = ['home', 'history', 'architecture', 'mosaics', 'gallery', 'visit'];
 
+function getInitialLanguage(): Language {
+  try {
+    const saved = localStorage.getItem('site_lang');
+    if (saved === 'ar' || saved === 'en') {
+      return saved;
+    }
+  } catch {
+    // Ignore storage restrictions
+  }
+
+  try {
+    const browserLang = (navigator.language || (navigator as { userLanguage?: string }).userLanguage || '').toLowerCase();
+    if (browserLang.startsWith('ar')) {
+      return 'ar';
+    }
+  } catch {
+    // Ignore navigator errors
+  }
+
+  // Fallback to English for any language outside the available languages (ar / en)
+  return 'en';
+}
+
 export default function App() {
-  const [lang, setLang] = useState<Language>('ar');
+  const [lang, setLang] = useState<Language>(getInitialLanguage);
   const [activeSection, setActiveSection] = useState<SectionId>('home');
   const locked = useRef(false);
   const lockTimer = useRef<number | null>(null);
+
+  const handleLanguageChange = useCallback((newLang: Language) => {
+    setLang(newLang);
+    try {
+      localStorage.setItem('site_lang', newLang);
+    } catch {
+      // Ignore storage restrictions
+    }
+  }, []);
 
   // اتجاه الصفحة واللغة وعنوان التبويب
   useEffect(() => {
@@ -84,7 +116,7 @@ export default function App() {
 
         <Header
           lang={lang}
-          onLanguageChange={setLang}
+          onLanguageChange={handleLanguageChange}
           activeSection={activeSection}
           onNavigate={handleNavigate}
         />
