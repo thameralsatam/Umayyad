@@ -176,8 +176,8 @@ export const Footer: React.FC<FooterProps> = React.memo(({ lang }) => {
         <div className="mt-[35px] border-t border-solid border-white/10 pt-[35px]">
           <p className="text-body-small text-white/70 text-center sm:text-start">
             {isAr
-              ? '© 2026 وزارة الأوقاف السورية. جميع الحقوق محفوظة.'
-              : '© 2026 Syrian Ministry of Endowments. All rights reserved.'}
+              ? 'نموذج أولي غير رسمي أعدّه ثامر السطام، وليس تابعاً لوزارة الأوقاف السورية. الشعار والصور والمعلومات مصدرها الوزارة وحقوقها لأصحابها.'
+              : 'Unofficial prototype by Thamer Alsatam, not affiliated with the Syrian Ministry of Endowments. Logo, images and information are sourced from the Ministry; rights remain with their owners.'}
           </p>
         </div>
       </div>

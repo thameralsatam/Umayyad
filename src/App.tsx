@@ -114,6 +114,15 @@ export default function App() {
           {lang === 'ar' ? 'تخطَّ إلى المحتوى' : 'Skip to content'}
         </a>
 
+        <div
+          role="note"
+          className="w-full bg-secondary px-4 py-2 text-center text-sm font-medium text-primary"
+        >
+          {lang === 'ar'
+            ? 'نموذج أولي غير رسمي، وليس الموقع الرسمي لوزارة الأوقاف السورية.'
+            : 'Unofficial prototype. This is not the official website of the Syrian Ministry of Endowments.'}
+        </div>
+
         <Header
           lang={lang}
           onLanguageChange={handleLanguageChange}
